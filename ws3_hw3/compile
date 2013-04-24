@@ -1,0 +1,7 @@
+#!/bin/bash
+pdflatex ms
+bibtex ms
+bibtex ms
+pdflatex ms
+pdflatex ms
+open ms.pdf
