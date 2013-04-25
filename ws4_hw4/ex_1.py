@@ -57,21 +57,40 @@ def tov_RHS(r,data):
     return rhs
 
 def tov_RK2(old_data,r,dr):
-
-    [ FILL IN RK2 ]
-
+    
+    newdata = zeros((nzones,2))
+    
+    for i in range(nzones-1)
+        k1 = dr * tov_RHS(r[i],old_data[i,:])
+        k2 = dr * tov_RHS(r[i] + 0.5*dr, old_data[i,:] + 0.5*k1)
+        new_data[i] = old_data + k2
+        
     return new_data
     
 def tov_RK3(old_data,r,dr):
 
-    [ FILL IN RK3 ]
-
+    newdata = zeros((nzones,2))
+    
+    for i in range(nzones-1)
+        k1 = dr * tov_RHS(r[i],old_data[i,:])
+        k2 = dr * tov_RHS(r[i] + 0.5*dr, old_data[i,:] + 0.5*k1)
+        k3 = dr * tov_RHS(r[i] + dr, old_data[i,:] - k1 + 2.0*k2)
+        new_data[i] = old_data + 1/6.0 * (k1 + 4.0*k2 + k3)
+        
     return new_data
 
 
 def tov_RK4(old_data,r,dr):
 
-    [ FILL IN RK4 ]
+    newdata = zeros((nzones,2))
+    
+    for i in range(nzones-1)
+        k1 = dr * tov_RHS(r[i],old_data[i,:])
+        k2 = dr * tov_RHS(r[i] + 0.5*dr, old_data[i,:] + 0.5*k1)
+        k3 = dr * tov_RHS(r[i] + 0.5*dr, old_data[i,:] + 0.5*k2)
+        k3 = dr * tov_RHS(r[i] + dr, old_data[i,:] + k3)
+        k4 = dr * 
+        new_data[i] = old_data + 1/6.0 * (k1 + 2.0*k2 + 2.0*k3 + k4)
 
     return new_data
 
