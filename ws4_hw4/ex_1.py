@@ -4,6 +4,7 @@ import sys
 from scipy import *
 from pylab import *
 from math import *
+from matplotlib.pyplot import *
 
 # global constants
 ggrav = 6.67e-8
@@ -36,8 +37,8 @@ rmax = 1.0e9
 def set_grid(rmax,nzones):
     # set up the grid and return the
     # radius array and dr
-
-    rad = array(arange(0.0,rmax,nzones))
+    dr = rmax/nzones
+    rad = array(arange(dr,rmax+1,dr))
     dr = rad[1] - rad[0]
 
     return (rad,dr)
@@ -58,39 +59,34 @@ def tov_RHS(r,data):
 
 def tov_RK2(old_data,r,dr):
     
-    newdata = zeros((nzones,2))
-    
-    for i in range(nzones-1)
-        k1 = dr * tov_RHS(r[i],old_data[i,:])
-        k2 = dr * tov_RHS(r[i] + 0.5*dr, old_data[i,:] + 0.5*k1)
-        new_data[i] = old_data + k2
+    k1 = dr * tov_RHS(r,old_data)
+    k2 = dr * tov_RHS(r + 0.5*dr, old_data + 0.5*k1)
+    new_data = old_data + k2
         
     return new_data
     
 def tov_RK3(old_data,r,dr):
-
-    newdata = zeros((nzones,2))
     
-    for i in range(nzones-1)
-        k1 = dr * tov_RHS(r[i],old_data[i,:])
-        k2 = dr * tov_RHS(r[i] + 0.5*dr, old_data[i,:] + 0.5*k1)
-        k3 = dr * tov_RHS(r[i] + dr, old_data[i,:] - k1 + 2.0*k2)
-        new_data[i] = old_data + 1/6.0 * (k1 + 4.0*k2 + k3)
+    for i in range(nzones-1):
+        k1 = dr * tov_RHS(r,old_data)
+        k2 = dr * tov_RHS(r + 0.5*dr, old_data + 0.5*k1)
+        k3 = dr * tov_RHS(r + dr, old_data - k1 + 2.0*k2)
+        new_data = old_data + 1/6.0 * (k1 + 4.0*k2 + k3)
         
     return new_data
 
 
 def tov_RK4(old_data,r,dr):
-
+    
+    nzones = len(r)
     newdata = zeros((nzones,2))
     
-    for i in range(nzones-1)
-        k1 = dr * tov_RHS(r[i],old_data[i,:])
-        k2 = dr * tov_RHS(r[i] + 0.5*dr, old_data[i,:] + 0.5*k1)
-        k3 = dr * tov_RHS(r[i] + 0.5*dr, old_data[i,:] + 0.5*k2)
-        k3 = dr * tov_RHS(r[i] + dr, old_data[i,:] + k3)
-        k4 = dr * 
-        new_data[i] = old_data + 1/6.0 * (k1 + 2.0*k2 + 2.0*k3 + k4)
+    for i in range(nzones-1):
+        k1 = dr * tov_RHS(r,old_data)
+        k2 = dr * tov_RHS(r + 0.5*dr, old_data + 0.5*k1)
+        k3 = dr * tov_RHS(r + 0.5*dr, old_data + 0.5*k2)
+        k4 = dr * tov_RHS(r + dr, old_data + k3)
+        new_data = old_data + 1/6.0 * (k1 + 2.0*k2 + 2.0*k3 + k4)
 
     return new_data
 
@@ -110,6 +106,7 @@ def tov_integrate(rmax,nzones):
     # 1 -- press
     # 2 -- eps
     # 3 -- mass
+
      
     # central values
     tovdata[0,0] = polyK * rhoc**polyG
@@ -141,17 +138,23 @@ def tov_integrate(rmax,nzones):
         tovout[i+1,0] = (tovout[i+1,1]/polyK)**(1/polyG)
         # compute eps
         tovout[i+1,2] = tovout[i+1,1]/((polyG - 1)*tovout[i+1,0])
-
-    return (tovout,isurf,dr)
+    return (tovout,isurf,dr,rad)
 
 # for convergence: 
 # number of points
-na = array([10.0,20.0,50.0,100.0,200.0,500.0,1.0e3,2.0e3,5.0e3,1.0e4] ])
+na = array([100,200,500,1000,2000,5000])
 # to store masses
 masses = zeros(len(na))
 # to store the drs
 drs = zeros(len(na))
 
 for i in range(len(na)):
-    (tov_star,isurf,dr) = tov_integrate(rmax,na[i])
-    [ FILL IN CODE FOR CONVERGENCE CALCULATION ]
+    (tov_star,isurf,dr,rad) = tov_integrate(rmax,na[i])
+    drs[i] = dr
+    masses[i] = tov_star[-1,3]/2.0e33
+plot(drs,masses,'ks--',linewidth=2)
+ylabel('M (M$_\odot$)')
+xlabel('dr (cm)')
+axis([0.0,1.01e7,1.42,1.80])
+savefig("RK2_mass.pdf",format="pdf")
+
