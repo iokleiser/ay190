@@ -23,65 +23,46 @@
 % \slugcomment{Draft \today}
 %\submitted{Draft \today} 
 
-\title {Ay 190 Worksheet 7} 
-\shorttitle{WS2}
+\title {Ay 190 Worksheet 4} 
+\shorttitle{WS4}
 \shortauthors{Kleiser}
 
 \author{Io Kleiser} \affil{Caltech} \email{ikleiser@caltech.edu}
 
-\section*{pp-Chain Nucleosynthesis}
+\section{Description of the Network Code}
 
-Figures \ref{f:T_1e7}, \ref{f:T_2e7}, and \ref{f:T_3e7} show the evoluton of $^1$H and $^4$He for central temperatures of $1 \times 10^7$,  $2 \times 10^7$, and $3 \times 10^7$ K, respectively. If the main sequence lifetime of the Sun is $10^{10}$ years and there should be a remaining mass hydrogen mass fraction of 0.02, then based on these plots the temperature should be between $2 \times 10^7$ and $3 \times 10^7$ K. The actual central temperature is $1.5 \times 10^7$.
+At the top of the code, several constants are defined as well as parameters for the EOS of a white dwarf (i.e. $\Gamma$ and $K$ in the polytrope euqation). Central and minimum densities are also defined here. The main routine is called tov\_integrate, which takes in the maximum radius for the grid and the number of zones. It calls set\_grid, which simply creates an array of radial zones which each have a thickness $dr$. tov\_integrate then defines the central pressure (based on the polytrope equation) and sets the central $M(r)$ to zero, then iterates outward through the zones. In this iteration, it first uses one of the Runge-Kutta methods (e.g. in tov\_RK2) to calculate values of pressure and interior mass for the $i+1$ zone. It also defines a surface at the minimum density above which the mass will not increase. Then it calculates the density and energy density based on the pressure. The outputs of this routine are: a $4\times n_z$ array (where $n_z$ is the number of zones) containing $\rho(r),~P(r),~\epsilon(r),$, and $M(r)$; the surface radius; and the width of the zones.
+
+\section{First Convergence Test and Profile Plots}
+
 
 \begin{figure}[!ht]
 \begin{center}
-\includegraphics[width=5in]{T_1e7.pdf}
+\includegraphics[width=5in]{RK2_mass.pdf}
 \end{center}
-\caption{ \label{f:T_1e7}}
+\caption{Mass calculated by RK2 as a function of the zone size $dr$. The calculation converges on the correct value for high numbers of zones. The highest number of zones used is 5000. \label{f:RK2_mass}}
 \end{figure}
 
 \begin{figure}[!ht]
 \begin{center}
-\includegraphics[width=5in]{T_2e7.pdf}
+\includegraphics[width=5in]{profiles.pdf}
 \end{center}
-\caption{ \label{f:T_2e7}}
+\caption{Density, pressure, and mass as a function of radius using 5000 zones and RK2. \label{f:profiles}}
 \end{figure}
 
 \begin{figure}[!ht]
 \begin{center}
-\includegraphics[width=5in]{T_3e7.pdf}
+\includegraphics[width=5in]{RK3_mass.pdf}
 \end{center}
-\caption{ \label{f:T_3e7}}
+\caption{ \label{f:RK3_mass}}
 \end{figure}
 
-The pp chain starts as follows:
-\begin{equation}
-^1_1{\rm H} + ^1_1{\rm H} \longrightarrow ^2_2{\rm He}
-\end{equation}
-\begin{equation}
-^2_2{\rm He} \longrightarrow ^2_1{\rm D} + {\rm e}^+ + \nu_e
-\end{equation}
-The combination of these two reactions becomes:
-\begin{equation}
-^1_1{\rm H} + ^1_1{\rm H} \longrightarrow ^2_1{\rm D} + {\rm e}^+ + \nu_e + 0.42~{\rm MeV}
-\label{eq:pp_1}
-\end{equation}
-We also have:
-\begin{equation}
-{\rm e}^- + {\rm e}^+ \longrightarrow 2\gamma + 1.02 MeV
-\label{eq:pp_2}
-\end{equation}
-and
-\begin{equation}
-^2_1{\rm D} + ^1_1{\rm H} \longrightarrow ^3_2{\rm He} + \gamma + 5.49~{\rm MeV}.
-\label{eq:pp_3}
-\end{equation}
-Then, for the pp I branch, 
-\begin{equation}
-^3_2{\rm He} + ^3_2{\rm He} \longrightarrow ^4_2{\rm He} + 2^1_1{\rm H} + 12.86~{\rm MeV}.
-\label{eq:pp_4}
-\end{equation}
-We want to create a network using Equations \ref{eq:pp_1}, \ref{eq:pp_2}, \ref{eq:pp_3}, and \ref{eq:pp_4}.
+\begin{figure}[!ht]
+\begin{center}
+\includegraphics[width=5in]{RK4_mass.pdf}
+\end{center}
+\caption{ \label{f:RK4_mass}}
+\end{figure}
 
 
 %\bibliographystyle{apj2} 
