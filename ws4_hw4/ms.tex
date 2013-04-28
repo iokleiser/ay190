@@ -35,6 +35,7 @@ At the top of the code, several constants are defined as well as parameters for 
 
 \section{First Convergence Test and Profile Plots}
 
+Figure \ref{f:RK2_mass} shows the convergence of the mass of the white dwarf to $145~{\rm M}_\odot$ with decreasing zone size. The profiles of the star in density, pressure, and mass are shown in Figure \ref{f:profiles}.
 
 \begin{figure}[!ht]
 \begin{center}
@@ -50,18 +51,22 @@ At the top of the code, several constants are defined as well as parameters for 
 \caption{Density, pressure, and mass as a function of radius using 5000 zones and RK2. \label{f:profiles}}
 \end{figure}
 
+\section{RK3 and RK4}
+
+Figures \ref{f:RK3_mass} and \ref{RK4_mass} show the convergence of the white dwarf's mass to the correct value for RK3 and RK4.
+
 \begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=5in]{RK3_mass.pdf}
 \end{center}
-\caption{ \label{f:RK3_mass}}
+\caption{Same plot as Figure \ref{f:RK2_mass} but with RK3. \label{f:RK3_mass}}
 \end{figure}
 
 \begin{figure}[!ht]
 \begin{center}
 \includegraphics[width=5in]{RK4_mass.pdf}
 \end{center}
-\caption{ \label{f:RK4_mass}}
+\caption{Same plot as Figure \ref{f:RK2_mass} and Figure \ref{f:RK3_mass} but with RK4.  \label{f:RK4_mass}}
 \end{figure}
 
 

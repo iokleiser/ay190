@@ -148,28 +148,29 @@ for i in range(len(na)):
     (tov_star,isurf,dr,rad) = tov_integrate(rmax,na[i])
     drs[i] = dr
     masses[i] = tov_star[-1,3]/2.0e33
-plot(drs,masses,'ks--',linewidth=2)
+plot(drs,masses,'ks',linewidth=2)
+plot(drs,drs
 ylabel('M (M$_\odot$)')
 xlabel('dr (cm)')
-axis([0.0,1.01e7,1.42,1.55])
-#savefig("RK4_mass.pdf",format="pdf")
+axis([0.0,1.01e7,1.42,1.8])
+savefig("RK2_mass.pdf",format="pdf")
 
-rho = tov_star[:,0]
-press = tov_star[:,1]
-mass = tov_star[:,3]
+#rho = tov_star[:,0]
+#press = tov_star[:,1]
+#mass = tov_star[:,3]
 
-print max(rho)
-print max(press)
-print max(mass)
+#print max(rho)
+#print max(press)
+#print max(mass)
 
-clf()
-plot(rad,rho/1.0e10,color='k',linewidth=2)
-plot(rad,press/1.0e28,color='r',linewidth=2)
-plot(rad,mass/3.0e33,color='b',linewidth=2)
-leg = legend(['density/1e10','pressure/1e28','mass/3e33'],loc=0)
-axis([0.0, 1.5e8, -0.1, 1.3])
-xlabel('radius (cm)')
-leg.draw_frame(False)
-plt.savefig("profiles.pdf",format="pdf")
+#clf()
+#plot(rad,rho/1.0e10,color='k',linewidth=2)
+#plot(rad,press/1.0e28,color='r',linewidth=2)
+#plot(rad,mass/3.0e33,color='b',linewidth=2)
+#leg = legend(['density/1e10','pressure/1e28','mass/3e33'],loc=0)
+#axis([0.0, 1.5e8, -0.1, 1.3])
+#xlabel('radius (cm)')
+#leg.draw_frame(False)
+3plt.savefig("profiles.pdf",format="pdf")
 
 
