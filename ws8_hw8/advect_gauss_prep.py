@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import sys,math
 from pylab import *
 from numpy import *
@@ -11,20 +13,32 @@ def apply_bcs(x,y):
     return y
 
 
-def analytic(x,x0,sigma):
-    y = lambda x: exp(-(x - x0)**2/(2*sigma**2))
+def analytic(xdata,x0,sigma):
+    func = lambda x: exp(-(x - x0)**2/(2*sigma**2))
+    y = zeros(len(x))
+    for i in range(len(x)):
+        y[i] = func(x[i])
+    return y
 
 def upwind(x,y,dx,v,dt):
-    ynew = array(zeros(len(y)))
-    for j in arange(1,len(y))
-        ynew[j] = y[j] - v*dt/dx * (y[j] - y[j-1])
+    length = len(y)
+    ynew = array(zeros(length))
+    ynew[1:] = y[1:] - v*dt/dx * (y[1:] - y[:(length-1)])
     return ynew
 
-def downwind(x,y,dx,v,dt):
-    ynew = array(zeros(len(y)))
-    for j in arange(0,len(y)-1)
-        ynew[j] = y[j] - v*dt/dx * (y[j+1] - y[j])
+def lax_friedrich(x,y,dx,v,dt):
+    length = len(y)
+    ynew = array(zeros(length))
+    ynew[2:] = 0.5*(y[2:] - y[:(length-2)]) - v*dt/dx * (y[2:] - y[:(length-2)])
     return ynew
+
+def ftcs(x,y,dx,v,dt):
+    length = len(y)
+    ynew = array(zeros(length))
+    ynew[2:] = y[1:(length-1)] - v*dt/dx * (y[2:] - y[:(length-2)])
+    return ynew
+
+def leapfrog(x,y,dx,v,dt):
 
 # parameters
 dx = 0.1
@@ -35,7 +49,7 @@ x = arange(0,100,dx)
 n = len(x)
 y = zeros(n)
 cfl = 1.0
-dt = 0.1
+dt = 0.5
 t = 0.0
 
 # for initial data
@@ -44,7 +58,9 @@ x0 = 30.0
 
 #set up initial conditions
 y = analytic(x,x0,sigma)
-
+print y
+print len(x)
+print len(y)
 # evolve (and show evolution)
 ion()
 figure()
@@ -54,7 +70,8 @@ show()
 
 yold2 = y
 yold = y
-ntmax = 2000
+ntmax = 500
+
 for it in range(ntmax):
     t += dt
     # save previous and previous previous data
@@ -72,9 +89,7 @@ for it in range(ntmax):
     x0 += v * dt
     yana = analytic(x,x0,sigma)
     # compute error estimage
-    err = 0
-    # err = ???
-    #[FILL IN CODE]
+    err = mean(abs(y - yana))
     print "it = ",it,err
     clf()
     # plot numerical result
