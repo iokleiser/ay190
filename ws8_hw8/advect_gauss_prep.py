@@ -38,7 +38,11 @@ def ftcs(x,y,dx,v,dt):
     ynew[2:] = y[1:(length-1)] - v*dt/dx * (y[2:] - y[:(length-2)])
     return ynew
 
-def leapfrog(x,y,dx,v,dt):
+def leapfrog(x,y,yold,dx,v,dt):
+    length = len(y)
+    ynew = array(zeros(length))
+    ynew[1:(length-1)] = yold[1:(length-1)] - v*dt/dx * (y[2:] - y[:(length-2)])
+    return ynew
 
 # parameters
 dx = 0.1
@@ -80,6 +84,10 @@ for it in range(ntmax):
 
     # get new data; ideally just call a function
     y = upwind(x,yold,dx,v,dt)
+    #y = downwind(x,yold,dx,v,dt)
+    #y = ftcs(x,yold,dx,v,dt)
+    #y = lax_friedrich(x,yold,dx,v,dt)
+    #y = leapfrog(x,yold,,yold2,dx,v,dt)
 
     # after update, apply boundary conditions
     apply_bcs(x,y) 
