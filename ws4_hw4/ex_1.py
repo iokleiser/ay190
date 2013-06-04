@@ -148,12 +148,21 @@ for i in range(len(na)):
     (tov_star,isurf,dr,rad) = tov_integrate(rmax,na[i])
     drs[i] = dr
     masses[i] = tov_star[-1,3]/2.0e33
+clf()
 plot(drs,masses,'ks',linewidth=2)
-plot(drs,drs
 ylabel('M (M$_\odot$)')
 xlabel('dr (cm)')
 axis([0.0,1.01e7,1.42,1.8])
-savefig("RK2_mass.pdf",format="pdf")
+#savefig("RK2_mass.pdf",format="pdf")
+clf()
+y = masses - 1.45
+dd = []
+Q = []
+for i in range(len(na)-1):
+    dd.append(drs[i+1]/drs[i])
+    Q.append((masses[i+1] - 1.45) / (masses[i] - 1.45))
+plot(dd,Q)
+show()
 
 #rho = tov_star[:,0]
 #press = tov_star[:,1]
@@ -171,6 +180,6 @@ savefig("RK2_mass.pdf",format="pdf")
 #axis([0.0, 1.5e8, -0.1, 1.3])
 #xlabel('radius (cm)')
 #leg.draw_frame(False)
-3plt.savefig("profiles.pdf",format="pdf")
+#plt.savefig("profiles.pdf",format="pdf")
 
 

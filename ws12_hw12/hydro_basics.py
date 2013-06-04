@@ -3,6 +3,8 @@ import sys,math
 from pylab import *
 from bounds import *
 from hybrid_eos import *
+from map_star import *
+from numpy import *
 
 # basic parameters
 gamma = 5.0/3.0
@@ -51,22 +53,25 @@ class mydata:
         for i in range(self.n):
             self.xi[i] = self.x[i] - 0.5*dx
 
-    
-    def setup_ID(self,polyfile):
-        # Polytrope initial data
-        poly = genfromtxt(polyfile)
-        for i in range(self.n):
-            self.rho[i] = 
-            if self.x[i] < rchange:
-                self.rho[i] = rho1
-                self.press[i] = press1
-                self.eps[i] = press1 / (rho1) / (gamma - 1.0)
-                self.vel[i] = 0.0
-            else:
-                self.rho[i] = rho2
-                self.press[i] = press2
-                self.eps[i] = press2 / (rho2) / (gamma - 1.0)
-                self.vel[i] = 0.0
+    def setup_grid(self,xmin,xmax):
+        dx = (xmax - xmin) / (self.n - self.g*2 )
+
+        # cell LEFT interfaces
+        self.xi[self.g] = 0.0
+        for i in range(self.g+1,self.n):
+            self.xi[i] = self.xi[i-1] + dx
+
+        for i in range(self.g-1,-1,-1):
+            self.xi[i] = self.xi[i+1] - dx
+
+        self.x[self.g] = dx * 0.5
+        for i in range(self.g,self.n-1):
+            # cell centers
+            self.x[i] = 0.5 * (self.xi[i] + self.xi[i+1])
+        self.x[self.n-1] = self.xi[self.n-1] + 0.5*dx
+
+        for i in range(self.g-1,-1,-1):
+            self.x[i] = -self.x[self.g*2 -1 - i]
 
 
 ##################################### some basic functions
@@ -83,7 +88,7 @@ def con2prim(q):
     rho = q[0,:]
     vel = q[1,:] / rho
     eps = q[2,:] / rho - 0.5*vel**2
-    press = eos_press(rho,eps,gamma)
+    press,cs2 = hybrid_eos(rho,eps)
 
     return (rho,eps,press,vel)
 
@@ -176,8 +181,8 @@ def reconstruct(hyd,type):
         sys.exit()
 
 
-    hyd.pressp = eos_press(hyd.rhop,hyd.epsp,gamma)
-    hyd.pressm = eos_press(hyd.rhom,hyd.epsm,gamma)
+    hyd.pressp,cs2p = hybrid_eos(hyd.rhop,hyd.epsp)
+    hyd.pressm,cs2m = hybrid_eos(hyd.rhom,hyd.epsm)
 
     hyd.qp = prim2con(hyd.rhop,hyd.velp,hyd.epsp)
     hyd.qm = prim2con(hyd.rhom,hyd.velm,hyd.epsm)
@@ -198,7 +203,8 @@ def eos_cs2(rho,eps,gamma):
 
 ############# time step calculation
 def calc_dt(hyd,dtp):
-    cs = sqrt(eos_cs2(hyd.rho,hyd.eps,gamma))
+    dum,cs2 = hybrid_eos(hyd.rho,hyd.eps)
+    cs = sqrt(cs2)
     dtnew = 1.0
     for i in range(hyd.g,hyd.n-hyd.g):
         dtnew = min(dtnew, (hyd.x[i+1]-hyd.x[i]) / \
@@ -216,8 +222,10 @@ def hlle(hyd):
     evr  = zeros((3,hyd.n))
     smin = zeros(hyd.n)
     smax = zeros(hyd.n)
-    csp  = sqrt(eos_cs2(hyd.rhop,hyd.epsp,gamma))
-    csm  = sqrt(eos_cs2(hyd.rhom,hyd.epsm,gamma))
+    dum,cs2p = hybrid_eos(hyd.rhop,hyd.epsp)
+    dum,cs2m = hybrid_eos(hyd.rhom,hyd.epsm)
+    csp  = sqrt(cs2p)
+    csm  = sqrt(cs2m)
     for i in range(1,hyd.n-2):
         evl[0,i] = hyd.velp[i]
         evl[1,i] = hyd.velp[i] - csp[i]
@@ -252,7 +260,6 @@ def hlle(hyd):
     for i in range(hyd.g,hyd.n-hyd.g):
         dx = hyd.xi[i+1] - hyd.xi[i]
         fluxdiff[:,i] = 1.0/dx * 1.0 / (hyd.x[i]**2) * (hyd.x[i]**2*flux[:,i] - hyd.x[i-1]**2*flux[:,i-1])
-
     return fluxdiff
 
 ############# RHS calculation
@@ -261,15 +268,7 @@ def calc_rhs(hyd):
     hyd = reconstruct(hyd,reconstruction_type)
     # compute flux differences
     fluxdiff = hlle(hyd)
-    # get interior mass for source terms
-    massint = zeros(hyd.n)
-    for i in range(hyd.g-1,hyd.n-hyd.g+1):
-        inner = hyd.x < hyd.x[i+1]
-        inner[0] = False
-        xvec = hyd.x[inner]
-        rhovec = hyd.rho[inner]
-        dxvec = 2*(hyd.x[inner] - hyd.xi[inner])
-        massint[i] = sum(4 * pi * xvec**2 * rhovec * dxvec)
+    massint,m1 = calc_mass(hyd)
     rhs = -fluxdiff
     rhs[1,:] += -hyd.rho * G * massint / (hyd.x**2)
     rhs[2,:] += -hyd.vel * hyd.rho * G * massint / (hyd.x**2)
@@ -298,10 +297,10 @@ def calc_mass(hyd):
 hyd = mydata(nzones)
 
 # set up grid
-hyd.setup_grid(0.0,2000.0)
+hyd.setup_grid(0.0,1.0e5*2000.0)
 
 # set up initial data
-hyd.setup_ID()
+hyd = setup_star(hyd)
 
 # get initial timestep
 dt = calc_dt(hyd,dt)

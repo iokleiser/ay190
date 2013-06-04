@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys,math
 from pylab import *
+from numpy import *
 
 K1 = 1.2435e15 * (0.5e0**(4.0/3.0))
 gamma1 = 1.28
@@ -32,7 +33,7 @@ def hybrid_eos(rho,eps):
 
         up=Ex*rho[i]**Gx+Ex3*rho[i]
         eth = eps[i]*rho[i] - up
-        pth = (gammath - 1)*eth
+        pth =(gammath - 1)*eth
         dpth_drho=(gammath - 1)*(eps[i]-Ex*Gx*rho[i]**(Gx-1.e0)-Ex3)
         dpth_deps=(gammath - 1)*rho[i]
             
@@ -44,6 +45,9 @@ def hybrid_eos(rho,eps):
         dpde = dpco_deps+dpth_deps
         dp_drho = dpco_drho+dpth_drho
         cs2[i] = dp_drho+dpde*press[i]/(rho[i]+1.0e-20)**2
+        if cs2[i] < 0.0:
+            print i,cs2[i]
+            sys.exit()
         
             
     return (press,cs2)
