@@ -10,13 +10,13 @@ dtp = dt
 reconstruction_type = 'mc' # minmod, mc, pc
 # use nzones
 nxzones = 200
-nyzones = 200
+nyzones = 100
 # run until time 0.2
 tend = 0.2
 
 ##################################### class definition
 class mydata:
-    def __init__(self,nzones):
+    def __init__(self,nxzones,nyzones):
         self.x     = zeros(nxzones) # cell centers
         self.y     = zeros(nyzones)
         self.xi    = zeros(nxzones) # cell LEFT interfaces
@@ -72,8 +72,8 @@ class mydata:
     
     def setup_ID(self):
         # Shocktube initial data
-        xcenter = (self.x[self.nx-self.gx-1] - self.x[self.gx]) / 2.0
-        print xcenter,ycenter
+        rchange = (self.x[self.nx-self.gx-1] - self.x[self.gx]) / 2.0
+        print rchange
         rho1 = 1.0
         rho2 = 0.1
         press1 = 1.0
@@ -94,11 +94,11 @@ class mydata:
 
 ##################################### some basic functions
 def prim2con(rho,vel,eps):
-    q = zeros((3,len(rho)))
-    q[0,:,:] = rho[:,:]
-    q[1,:,:] = rho[:,:] * vel[:,:]
-    q[2,:,:] = rho[:,:] * eps[:,:] + \
-        0.5 * rho[:,:] * vel[:,:]**2
+    q = zeros((3,rho.shape[0],rho.shape[1]))
+    q[0,:,:] = rho
+    q[1,:,:] = rho * vel
+    q[2,:,:] = rho * eps + \
+        0.5 * rho * vel**2
 
     return q
 
@@ -203,42 +203,39 @@ def reconstruct(hyd,type):
 
 
     elif(type=='minmod'):
-        for i in range(hyd.gx-1,hyd.nx-hyd.gx+1):
-            (hyd.rhopx[i,:],hyd.rhomx[i,:]) = tvd_minmod_reconstruct(hyd.nx,hyd.gx,hyd.rho[i,:],hyd.x,hyd.xi)
-            (hyd.epspx[i,:],hyd.epsmx[i,:]) = tvd_minmod_reconstruct(hyd.nx,hyd.gx,hyd.eps[i,:],hyd.x,hyd.xi)
-            (hyd.velpx[i,:],hyd.velmx[i,:]) = tvd_minmod_reconstruct(hyd.nx,hyd.gx,hyd.vel[i,:],hyd.x,hyd.xi)
-        for j in range(hyd.gy-1,hyd.ny-hyd.gy+1):
-            (hyd.rhopy[:,j],hyd.rhomy[:,j]) = tvd_minmod_reconstruct(hyd.ny,hyd.gy,hyd.rho[:,j],hyd.y,hyd.yi)
-            (hyd.epspy[:,j],hyd.epsmy[:,j]) = tvd_minmod_reconstruct(hyd.ny,hyd.gy,hyd.eps[:,j],hyd.y,hyd.yi)
-            (hyd.velpy[:,j],hyd.velmy[:,j]) = tvd_minmod_reconstruct(hyd.ny,hyd.gy,hyd.vel[:,j],hyd.y,hyd.yi)
+        for i in range(hyd.gy-1,hyd.ny-hyd.gy+1):
+            (hyd.rhopx[:,i],hyd.rhomx[:,i]) = tvd_minmod_reconstruct(hyd.nx,hyd.gx,hyd.rho[:,i],hyd.x,hyd.xi)
+            (hyd.epspx[:,i],hyd.epsmx[:,i]) = tvd_minmod_reconstruct(hyd.nx,hyd.gx,hyd.eps[:,i],hyd.x,hyd.xi)
+            (hyd.velpx[:,i],hyd.velmx[:,i]) = tvd_minmod_reconstruct(hyd.nx,hyd.gx,hyd.vel[:,i],hyd.x,hyd.xi)
+        for j in range(hyd.gx-1,hyd.nx-hyd.gx+1):
+            (hyd.rhopy[j,:],hyd.rhomy[j,:]) = tvd_minmod_reconstruct(hyd.ny,hyd.gy,hyd.rho[j,:],hyd.y,hyd.yi)
+            (hyd.epspy[j,:],hyd.epsmy[j,:]) = tvd_minmod_reconstruct(hyd.ny,hyd.gy,hyd.eps[j,:],hyd.y,hyd.yi)
+            (hyd.velpy[j,:],hyd.velmy[j,:]) = tvd_minmod_reconstruct(hyd.ny,hyd.gy,hyd.vel[j,:],hyd.y,hyd.yi)
 
     elif(type=='mc'):
-        for i in range(hyd.gx-1,hyd.nx-hyd.gx+1):
-            (hyd.rhopx[i,:],hyd.rhomx[i,:]) = tvd_mc_reconstruct(hyd.nx,hyd.gx,hyd.rho[i,:],hyd.x,hyd.xi)
-            (hyd.epspx[i,:],hyd.epsmx[i,:]) = tvd_mc_reconstruct(hyd.nx,hyd.gx,hyd.eps[i,:],hyd.x,hyd.xi)
-            (hyd.velpx[i,:],hyd.velmx[i,:]) = tvd_mc_reconstruct(hyd.nx,hyd.gx,hyd.vel[i,:],hyd.x,hyd.xi)
-        for j in range(hyd.gy-1,hyd.ny-hyd.gy+1):
-            (hyd.rhopy[:,j],hyd.rhomy[:,j]) = tvd_mc_reconstruct(hyd.ny,hyd.gy,hyd.rho[:,j],hyd.y,hyd.yi)
-            (hyd.epspy[:,j],hyd.epsmy[:,j]) = tvd_mc_reconstruct(hyd.ny,hyd.gy,hyd.eps[:,j],hyd.y,hyd.yi)
-            (hyd.velpy[:,j],hyd.velmy[:,j]) = tvd_mc_reconstruct(hyd.ny,hyd.gy,hyd.vel[:,j],hyd.y,hyd.yi)
+        for i in range(hyd.gy-1,hyd.ny-hyd.gy+1):
+            (hyd.rhopx[:,i],hyd.rhomx[:,i]) = tvd_mc_reconstruct(hyd.nx,hyd.gx,hyd.rho[:,i],hyd.x,hyd.xi)
+            (hyd.epspx[:,i],hyd.epsmx[:,i]) = tvd_mc_reconstruct(hyd.nx,hyd.gx,hyd.eps[:,i],hyd.x,hyd.xi)
+            (hyd.velpx[:,i],hyd.velmx[:,i]) = tvd_mc_reconstruct(hyd.nx,hyd.gx,hyd.vel[:,i],hyd.x,hyd.xi)
+        for j in range(hyd.gx-1,hyd.nx-hyd.gx+1):
+            (hyd.rhopy[j,:],hyd.rhomy[j,:]) = tvd_mc_reconstruct(hyd.ny,hyd.gy,hyd.rho[j,:],hyd.y,hyd.yi)
+            (hyd.epspy[j,:],hyd.epsmy[j,:]) = tvd_mc_reconstruct(hyd.ny,hyd.gy,hyd.eps[j,:],hyd.y,hyd.yi)
+            (hyd.velpy[j,:],hyd.velmy[j,:]) = tvd_mc_reconstruct(hyd.ny,hyd.gy,hyd.vel[j,:],hyd.y,hyd.yi)
                 
     else:
         print "reconstruction type not known; abort!"
         sys.exit()
+    
+    hyd.presspx = eos_press(hyd.rhopx,hyd.epspx,gamma)
+    hyd.pressmx = eos_press(hyd.rhomx,hyd.epsmx,gamma)
+    hyd.presspy = eos_press(hyd.rhopy,hyd.epspy,gamma)
+    hyd.pressmy = eos_press(hyd.rhomy,hyd.epsmy,gamma)
 
-    for i in range(hyd.gx-1,hyd.nx-hyd.gx+1):
-        hyd.presspx[i,:] = eos_press(hyd.rhopx[i,:],hyd.epspx[i,:],gamma)
-        hyd.pressmx[i,:] = eos_press(hyd.rhomx[i,:],hyd.epsmx[i,:],gamma)
-    for j in range(hyd.gy-1,hyd.ny-hyd.gy+1):
-        hyd.presspy[:,j] = eos_press(hyd.rhopx[:,j],hyd.epspx[:,j],gamma)
-        hyd.pressmy[:,j] = eos_press(hyd.rhomx[:,j],hyd.epsmx[:,j],gamma)
-
-    for i in range(hyd.gx-1,hyd.nx-hyd.gx+1):
-        hyd.qpx[i,:] = prim2con(hyd.rhopx[i,:],hyd.velpx[i,:],hyd.epspx[i,:])
-        hyd.qmx[i,:] = prim2con(hyd.rhomx[i,:],hyd.velmx[i,:],hyd.epsmx[i,:])
-    for j in range(hyd.gy-1,hyd.ny-hyd.gy+1):
-        hyd.qpy[:,j] = prim2con(hyd.rhopy[:,j],hyd.velpy[:,j],hyd.epspy[:,j])
-        hyd.qmy[:,j] = prim2con(hyd.rhomy[:,j],hyd.velmy[:,j],hyd.epsmy[:,j])
+    hyd.qpx = prim2con(hyd.rhopx,hyd.velpx,hyd.epspx)
+    hyd.qmx = prim2con(hyd.rhomx,hyd.velmx,hyd.epsmx)
+    hyd.qpy = prim2con(hyd.rhopy,hyd.velpy,hyd.epspy)
+    hyd.qmy = prim2con(hyd.rhomy,hyd.velmy,hyd.epsmy)
+    
 
     return hyd
 
@@ -270,7 +267,7 @@ def calc_dt(hyd,dtp):
     return dtnew
 
 ############# HLLE solver
-def hlle(n,g,velp,velm,qp,qm,pressp,pressm):
+def hlle(n,g,xi,rhop,rhom,velp,velm,qp,qm,pressp,pressm,epsp,epsm):
     fluxdiff = zeros((3,n))
     # compute eigenvalues
     evl  = zeros((3,n))
@@ -279,7 +276,7 @@ def hlle(n,g,velp,velm,qp,qm,pressp,pressm):
     smax = zeros(n)
     csp  = sqrt(eos_cs2(rhop,epsp,gamma))
     csm  = sqrt(eos_cs2(rhom,epsm,gamma))
-    for i in range(1,hyd.n-2):
+    for i in range(1,n-2):
         evl[0,i] = velp[i]
         evl[1,i] = velp[i] - csp[i]
         evl[2,i] = velp[i] + csp[i]
@@ -294,8 +291,8 @@ def hlle(n,g,velp,velm,qp,qm,pressp,pressm):
     fluxl = zeros((3,n))
     fluxr = zeros((3,n))
 
-
-    for i in range(1,hyd.n-2):
+    
+    for i in range(1,n-2):
         fluxl[0,i] = qp[0,i] * velp[i]
         fluxl[1,i] = qp[1,i] * velp[i] + pressp[i]
         fluxl[2,i] = (qp[2,i] + pressp[i]) * velp[i]
@@ -311,19 +308,23 @@ def hlle(n,g,velp,velm,qp,qm,pressp,pressm):
 
     # flux differences
     for i in range(g,n-g):
-        dx = hyd.xi[i+1] - hyd.xi[i]
+        dx = xi[i+1] - xi[i]
         fluxdiff[:,i] = 1.0/dx * (flux[:,i] - flux[:,i-1])
-
+        
     return fluxdiff
 
 ############# HLLE solver
 def hlle_2D(hyd):
-    fluxdiffx = zeros((hyd.nx,hyd.ny))
-    fluxdiffy = zeros((hyd.nx,hyd.ny))
-    for i in range(hyd.gx-1,hyd.nx-hyd.gx+1):
-        fluxdiffx[i,:] = hlle(nx,gx,velpx[i,:],velmx[i,:],qpx[i,:],qmx[i,:],presspx[i,:],pressmx[i,:])
-    for j in range(hyd.gy-1,hyd.ny-hyd.gy+1):
-        fluxdiffy[:,j] = hlle(ny,gy,velpy[:,j],velmy[:,j],qpy[:,j],qmy[:,j],presspy[:,j],pressmy[:,j])
+    
+    fluxdiffx = zeros((3,hyd.nx,hyd.ny))
+    fluxdiffy = zeros((3,hyd.nx,hyd.ny))
+    
+    for i in range(hyd.gy-1,hyd.ny-hyd.gy+1):
+        fluxdiffx[:,:,i] = hlle(hyd.nx,hyd.gx,hyd.xi,hyd.rhopx[:,i],hyd.rhomx[:,i],hyd.velpx[:,i],hyd.velmx[:,i],hyd.qpx[:,:,i],hyd.qmx[:,:,i],hyd.presspx[:,i],hyd.pressmx[:,i],hyd.epspx[:,i],hyd.epsmx[:,i])
+        
+    for j in range(hyd.gx-1,hyd.nx-hyd.gx+1):
+        fluxdiffy[:,j,:] = hlle(hyd.ny,hyd.gy,hyd.yi,hyd.rhopy[j,:],hyd.rhomy[j,:],hyd.velpy[j,:],hyd.velmy[j,:],hyd.qpy[:,j,:],hyd.qmy[:,j,:],hyd.presspy[j,:],hyd.pressmy[j,:],hyd.epspy[j,:],hyd.epsmy[j,:])
+        
     return fluxdiffx+fluxdiffy
 
 ############# RHS calculation
@@ -340,10 +341,10 @@ def calc_rhs(hyd):
 ########################################################################
 
 # initialize
-hyd = mydata(nzones)
+hyd = mydata(nxzones,nyzones)
 
 # set up grid
-hyd.setup_grid(0.0,1.0,0.0,1.0)
+hyd.setup_grid(0.0,1.0,0.0,0.5)
 
 # set up initial data
 hyd.setup_ID()
@@ -357,12 +358,12 @@ hyd.q = prim2con(hyd.rho,hyd.vel,hyd.eps)
 t = 0.0
 i = 0
 
+
 # display stuff
 ion()
 figure()
-contour(hyd.x,hyd.y,hyd.rho)
-show()
-sys.exit()
+contourf(hyd.x,hyd.y,transpose(hyd.rho))
+savefig("initial_data.pdf",format="pdf")
 
 # main integration loop
 while(t < tend):
@@ -371,7 +372,7 @@ while(t < tend):
         # output
         print "%5d %15.6E %15.6E" % (i,t,dt)
         clf()
-        contour(hyd.x,hyd.y,hyd.rho)
+        contourf(hyd.x,hyd.y,transpose(hyd.rho))
         draw()
 
     # calculate new timestep
@@ -406,7 +407,7 @@ while(t < tend):
 # display final result
 ioff()
 clf()
-contour(hyd.x,hyd.y,hyd.rho)
+contourf(hyd.x,hyd.y,transpose(hyd.rho))
 xlabel('x')
 ylabel('$\\rho$')
 savefig("profile.pdf", format="pdf")
