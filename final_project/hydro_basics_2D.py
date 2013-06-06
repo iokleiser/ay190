@@ -7,7 +7,7 @@ gamma = 5.0/3.0
 cfl = 0.5
 dt = 1.0e-5
 dtp = dt
-reconstruction_type = 'mc' # minmod, mc, pc
+reconstruction_type = 'pc' # minmod, mc, pc
 # use nzones
 nxzones = 200
 nyzones = 100
